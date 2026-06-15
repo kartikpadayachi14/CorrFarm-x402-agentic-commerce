@@ -1,0 +1,54 @@
+// CorrFarm — Prisma Schema (SQLite)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  wallet    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payments  Payment[]
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  userId      String?
+  resource    String
+  amount      Int
+  txId        String   @unique
+  sessionId   String?
+  status      String   @default("pending")
+  verifiedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model Webhook {
+  id        String   @id @default(uuid())
+  url       String
+  events    String   // JSON array of event types
+  secret    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AnalysisCache {
+  id        String   @id @default(uuid())
+  type      String   // correlation_matrix, credibility_score, etc.
+  params    String   // JSON string of parameters
+  result    String   // JSON string of results
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
